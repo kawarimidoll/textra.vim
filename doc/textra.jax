@@ -1,0 +1,141 @@
+*textra.jax* 翻訳プラグイン
+
+Author: kawarimidoll
+License: MIT https://github.com/kawarimidoll/textra.vim/blob/main/LICENSE
+
+==============================================================================
+INTRODUCTION                                             *textra-introduction*
+
+    *textra* は「みんなの自動翻訳＠TexTra」を使用した翻訳プラグインです。
+    https://mt-auto-minhon-mlt.ucri.jgn-x.jp/
+
+    Vim および Neovim で動作します。
+
+REQUIREMENTS                                             *textra-requirements*
+
+    TexTraのユーザー登録が必要です。登録後、設定ページまたはAPIドキュメントの
+    ページから、API keyとAPI secretを控えておいてください。
+
+    また、 HTTP リクエストを行うため、 `curl` が必要です。
+
+==============================================================================
+INTERFACE                                                   *textra-interface*
+
+------------------------------------------------------------------------------
+FUNCTIONS                                                   *textra-functions*
+
+textra#setup({opts})                                          *textra#setup()*
+
+    プラグインの初期化を行います。
+    {opts} は以下に示すフィールドを持つ辞書です。
+      - name                                                *textra-opts-name*
+        (REQUIRED)
+        TexTra のログインIDです。必須です。
+      - key                                                  *textra-opts-key*
+        (REQUIRED)
+        TexTra のAPI keyです。必須です。
+      - secret                                            *textra-opts-secret*
+        (REQUIRED)
+        TexTra のAPI secretです。必須です。
+      - debug_path                                    *textra-opts-debug_path*
+        (default: '')
+        空文字以外を指定すると、そのパスにデバッグログを出力します。
+
+    example:
+>
+    call textra#setup({
+        \ 'name': 'your_name',
+        \ 'key': 'your_key',
+        \ 'secret': 'your_secret'
+        \ })
+<
+
+textra#translate(text, from_lang, to_lang)                *textra#translate()*
+
+    TexTra の汎用NTを用いた翻訳を行います。
+    引数はそれぞれ、 {text} は翻訳を行いたい文字列、 {from_lang} は翻訳元
+    ({text}) の言語、 {to_lang} は翻訳先の言語です。
+    返り値は翻訳した結果の文字列です。
+
+    対応言語は以下のページから確認してください。
+    https://mt-auto-minhon-mlt.ucri.jgn-x.jp/content/mt/
+
+    example:
+>
+    echo textra#translate('Hello world!', 'en', 'ja')
+<
+
+==============================================================================
+EXAMPLE                                                       *textra-example*
+
+    このプラグインではコマンドを提供していません。
+    ユースケースに応じて、適切なコマンドを定義すると便利です。
+
+    以下は指定した |registers| をもとに翻訳を行うコマンドの例です。
+    翻訳したい文字列を |yank| してから、 `Textra ja en` のように使用します。
+    翻訳結果を |echomsg| で表示します。
+
+    example:
+>
+    function s:display_result(result) abort
+      echomsg a:result
+    endfunction
+
+    function s:cmd_translate(from_lang, to_lang, reg = '') abort
+      echo '[textra] translate ...'
+      let src = getreg(a:reg)->substitute('[[:space:]]\+', ' ', 'g')
+      let dst = textra#translate(src, a:from_lang, a:to_lang)
+      redraw!
+      call s:display_result(dst)
+    endfunction
+
+    command! -nargs=+ Textra call s:cmd_translate(<f-args>)
+<
+
+    また、 `s:display_result` の内部を編集することで、表示形式を変更できます。
+
+    以下は、翻訳結果を |popup_atcursor| で閲覧する例です。
+
+    example:
+>
+    function s:display_result(result) abort
+      call popup_atcursor(a:result, {})
+    endfunction
+<
+
+    以下は、翻訳結果を結果閲覧用のバッファに書き出す例です。
+
+    example:
+>
+    function s:display_result(result) abort
+      let bufnr = bufadd('textra_result')
+      call bufload(bufnr)
+      call appendbufline(bufnr, '$', ['', a:result])
+      let winnr = bufwinnr(bufnr)
+      if winnr < 0
+        new
+        execute 'buffer' bufnr
+        setlocal buftype=nofile bufhidden=hide noswapfile
+        execute winnr('#') 'wincmd w'
+      endif
+    endfunction
+<
+
+==============================================================================
+FAQ                                                               *textra-faq*
+
+プラグインを遅延起動したい~
+
+    このプラグインは |autoload| 関数だけを提供しているので、関数を実行したとき
+    に初めてロードされます。プラグインマネージャ等での遅延設定は不要です。
+
+専門用語などは翻訳せずに残したい~
+
+    文字列の一部を `｟` と `｠` で挟むことで、翻訳不要としてマークすることがで
+    きます。
+    逆に、翻訳したい部分がこれらで挟まれないよう注意してください。
+
+==============================================================================
+CHANGELOG                                                   *textra-changelog*
+
+vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl
