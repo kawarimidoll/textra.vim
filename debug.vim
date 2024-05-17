@@ -33,7 +33,7 @@ function s:display_result(result) abort
     if winnr < 0
       new
       execute 'buffer' bufnr
-      setlocal buftype=nofile bufhidden=hide noswapfile
+      setlocal nobuflisted buftype=nofile bufhidden=hide noswapfile
       execute winnr('#') 'wincmd w'
     endif
   endif

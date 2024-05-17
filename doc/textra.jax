@@ -115,7 +115,7 @@ EXAMPLE                                                       *textra-example*
       if winnr < 0
         new
         execute 'buffer' bufnr
-        setlocal buftype=nofile bufhidden=hide noswapfile
+        setlocal nobuflisted buftype=nofile bufhidden=hide noswapfile
         execute winnr('#') 'wincmd w'
       endif
     endfunction
