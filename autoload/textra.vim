@@ -44,7 +44,11 @@ function s:http_post(url, options) abort
   try
     return res->json_decode()
   catch
-    return {'error': 'parse error', 'error_description': 'not json response'}
+    let desc = 'not json response'
+    if res =~ '<.*>'
+      let desc ..= ': ' .. res->substitute('<[^>]\{-}>', ' ', 'g')->trim()
+    endif
+    return {'error': 'parse error', 'error_description': desc}
   endtry
 endfunction
 
